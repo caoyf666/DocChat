@@ -31,7 +31,7 @@ class PdfToMdNode(BaseNode):
             raise PdfConversionError(message="MinerU解析PDF失败", node_name=self.name)
 
         # 3. 获取解析后md_path
-        md_path = self.get_md_path(import_file_path_obj, file_dir_obj)
+        md_path = self._get_md_path(import_file_path_obj, file_dir_obj)
 
         # 4. 更新state["md_path"]
         state['md_path'] = md_path
@@ -125,8 +125,8 @@ class PdfToMdNode(BaseNode):
         for line in proc.stdout:
             self.logger.info(f"MinerU解析产生的日志：{line}")
 
-        # 4. 主线程等待子进程做完（状态码0：成功 反之失败）
         processed_result = proc.wait()
+        # 4. 主线程等待子进程做完（状态码0：成功 反之失败）
         end_time = time.time()
         if processed_result == 0:
             self.logger.info(f"MinerU解析PDF成功 耗时:{end_time - start_time:.2f}s")
@@ -135,7 +135,7 @@ class PdfToMdNode(BaseNode):
 
         return processed_result
 
-    def get_md_path(self, import_file_path_obj: Path, file_dir_obj: Path) -> str:
+    def _get_md_path(self, import_file_path_obj: Path, file_dir_obj: Path) -> str:
         """
         获取解析后md的路径
         :param import_file_path_obj:
