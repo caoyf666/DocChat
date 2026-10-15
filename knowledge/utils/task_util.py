@@ -27,6 +27,7 @@ _NODE_NAME_TO_CN: Dict[str, str] = {
     "md_to_img_node": "Markdown图片处理",
     "document_split_node": "文档切分",
     "item_name_recognition_node": "主体名称识别",
+    "item_name_confirmed_node": "确认问题产品",
     "embedding_chunk_node": "向量生成",
     "import_milvus_node": "导入向量数据库",
     "__end__": "处理完成",
