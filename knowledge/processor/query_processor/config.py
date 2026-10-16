@@ -13,6 +13,13 @@ load_dotenv()
 class QueryConfig:
     """Query workflow configuration loaded from environment variables."""
 
+    embedding_search_limit: int = field(
+        default_factory=lambda: int(os.getenv("EMBEDDING_SEARCH_LIMIT", "5"))
+    )
+    hyde_search_limit: int = field(
+        default_factory=lambda: int(os.getenv("HYDE_SEARCH_LIMIT", "5"))
+    )
+
     item_name_high_confidence: float = field(
         default_factory=lambda: float(os.getenv("ITEM_NAME_HIGH_CONFIDENCE", "0.75"))
     )
@@ -36,6 +43,15 @@ class QueryConfig:
     )
     item_name_collection: str = field(
         default_factory=lambda: os.getenv("ITEM_NAME_COLLECTION", "")
+    )
+    chunks_collection: str = field(
+        default_factory=lambda: os.getenv("CHUNKS_COLLECTION", "")
+    )
+    openai_api_key: str = field(
+        default_factory=lambda: os.getenv("OPENAI_API_KEY", "")
+    )
+    mcp_dashscope_base_url: str = field(
+        default_factory=lambda: os.getenv("MCP_DASHSCOPE_BASE_URL", "")
     )
 
     @classmethod

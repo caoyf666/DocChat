@@ -87,3 +87,8 @@ def execute_hybrid_search_query(
 
 def item_names_filter(item_names: List[str]) -> Tuple[str, Dict[str, Any]]:
     return "item_name in {item_names}", {"item_names": item_names}
+
+
+def _item_names_filter(item_names: List[str]) -> Tuple[str, Dict[str, Any]]:
+    """Backward-compatible alias used by query nodes."""
+    return item_names_filter(item_names)
