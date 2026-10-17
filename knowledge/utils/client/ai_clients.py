@@ -18,8 +18,11 @@ class AIClients(BaseClientManager):
     _openai_client: Optional[OpenAI] = None
     _openai_lock = threading.Lock()
 
-    _openai_llm_client: Optional[ChatOpenAI] = None
-    _openai_llm_lock = threading.Lock()
+    _openai_llm_response_text_client: Optional[ChatOpenAI] = None
+    _openai_llm_response_text_lock = threading.Lock()
+
+    _openai_llm_response_json_client: Optional[ChatOpenAI] = None
+    _openai_llm_response_json_lock = threading.Lock()
 
     _bge_m3_client: Optional[BGEM3EmbeddingFunction] = None
     _bge_m3_lock = threading.Lock()
@@ -53,8 +56,17 @@ class AIClients(BaseClientManager):
     # ── LLM ──
     @classmethod
     def get_llm_client(cls, response_format: bool = True) -> ChatOpenAI:
-        return cls._get_or_create("_openai_llm_client", cls._openai_llm_lock,
-                                  lambda: cls._create_llm_client(response_format))
+        if response_format:
+            return cls._get_or_create(
+                "_openai_llm_response_json_client",
+                cls._openai_llm_response_json_lock,
+                lambda: cls._create_llm_client(response_format),
+            )
+        return cls._get_or_create(
+            "_openai_llm_response_text_client",
+            cls._openai_llm_response_text_lock,
+            lambda: cls._create_llm_client(response_format),
+        )
 
     @classmethod
     def _create_llm_client(cls, response_format) -> ChatOpenAI:

@@ -13,6 +13,10 @@ load_dotenv()
 class QueryConfig:
     """Query workflow configuration loaded from environment variables."""
 
+    max_context_chars: int = field(
+        default_factory=lambda: int(os.getenv("MAX_CONTEXT_CHARS", "12000"))
+    )
+
     rrf_k: int = field(
         default_factory=lambda: int(os.getenv("RRF_K", "60"))
     )

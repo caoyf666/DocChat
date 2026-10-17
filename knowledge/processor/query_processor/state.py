@@ -14,6 +14,7 @@ class QueryGraphState(TypedDict, total=False):
     rrf_chunks: list
     web_search_docs: list
     reranked_docs: list
+    prompt: str
     answer: str
     item_names: List[str]
     rewritten_query: str
@@ -31,6 +32,7 @@ DEFAULT_STATE: QueryGraphState = {
     "rrf_chunks": [],
     "web_search_docs": [],
     "reranked_docs": [],
+    "prompt": "",
     "answer": "",
     "item_names": [],
     "rewritten_query": "",

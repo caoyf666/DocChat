@@ -13,6 +13,7 @@ from knowledge.utils.client.ai_clients import AIClients
 from knowledge.utils.client.storage_clients import StorageClients
 from knowledge.utils.embedding_util import generate_bge_m3_hybrid_vectors
 from knowledge.utils.milvus_util import create_hybrid_search_requests, execute_hybrid_search_query
+from knowledge.utils.mongo_history_util import get_recent_messages
 
 logger = logging.getLogger(__name__)
 
@@ -260,7 +261,9 @@ class ItemNameConfirmedNode(BaseNode):
                 expected_type=str,
             )
 
-        history_context = self._format_history(state.get("history", []))
+        session_id = state.get("session_id", "")
+        history_context_list = state.get("history") or get_recent_messages(session_id=session_id, limit=10)
+        history_context = self._format_history(history_context_list)
         llm_result = self._extractor.extract_item_name(original_query, history_context)
 
         item_names = llm_result.get("item_names", [])
@@ -272,6 +275,7 @@ class ItemNameConfirmedNode(BaseNode):
             confirmed, options = [], []
 
         self._decide(confirmed, options, state, rewritten_query)
+        state["history"] = history_context_list
         return state
 
     def _format_history(self, history_context: list) -> str:
