@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from openai import OpenAI
 from pymilvus.model.hybrid import BGEM3EmbeddingFunction
+from FlagEmbedding import FlagReranker
 
 from knowledge.utils.client.base import BaseClientManager, logger
 
@@ -22,6 +23,9 @@ class AIClients(BaseClientManager):
 
     _bge_m3_client: Optional[BGEM3EmbeddingFunction] = None
     _bge_m3_lock = threading.Lock()
+
+    _bge_m3_rerank_client: Optional[FlagReranker] = None
+    _bge_m3_rerank_lock = threading.Lock()
 
     # ── VLM ──
 
@@ -109,6 +113,35 @@ class AIClients(BaseClientManager):
 
         except Exception as e:
             raise ConnectionError(f"BGE_M3嵌入模型客户端创建失败: {e}") from e
+
+    @classmethod
+    def get_bge_m3_rerank_client(cls):
+        return cls._get_or_create(
+            "_bge_m3_rerank_client",
+            cls._bge_m3_rerank_lock,
+            cls._create_bge_m3_rerank_client,
+        )
+
+    @classmethod
+    def _create_bge_m3_rerank_client(cls):
+        """
+        创建 BGE reranker 客户端。
+        """
+        try:
+            model_name_or_path = cls._require_env("BGE_RERANKER_LARGE")
+            device = cls._require_env("BGE_DEVICE")
+            fp16_str = cls._require_env("BGE_FP16")
+            fp16 = fp16_str.lower() in ("true", "1")
+
+            return FlagReranker(
+                model_name_or_path=model_name_or_path,
+                device=device,
+                use_fp16=fp16,
+            )
+        except EnvironmentError:
+            raise
+        except Exception as e:
+            raise ConnectionError(f"BGE reranker客户端创建失败: {e}") from e
 
 
 if __name__ == '__main__':

@@ -11,7 +11,9 @@ class QueryGraphState(TypedDict, total=False):
     original_query: str
     embedding_chunks: list
     hyde_embedding_chunks: list
+    rrf_chunks: list
     web_search_docs: list
+    reranked_docs: list
     answer: str
     item_names: List[str]
     rewritten_query: str
@@ -26,7 +28,9 @@ DEFAULT_STATE: QueryGraphState = {
     "original_query": "",
     "embedding_chunks": [],
     "hyde_embedding_chunks": [],
+    "rrf_chunks": [],
     "web_search_docs": [],
+    "reranked_docs": [],
     "answer": "",
     "item_names": [],
     "rewritten_query": "",

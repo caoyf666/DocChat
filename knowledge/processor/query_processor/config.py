@@ -13,6 +13,25 @@ load_dotenv()
 class QueryConfig:
     """Query workflow configuration loaded from environment variables."""
 
+    rrf_k: int = field(
+        default_factory=lambda: int(os.getenv("RRF_K", "60"))
+    )
+    rrf_max_results: int = field(
+        default_factory=lambda: int(os.getenv("RRF_MAX_RESULTS", "10"))
+    )
+    rerank_max_top_k: int = field(
+        default_factory=lambda: int(os.getenv("RERANK_MAX_TOP_K", "10"))
+    )
+    rerank_min_top_k: int = field(
+        default_factory=lambda: int(os.getenv("RERANK_MIN_TOP_K", "3"))
+    )
+    rerank_gap_ratio: float = field(
+        default_factory=lambda: float(os.getenv("RERANK_GAP_RATIO", "0.25"))
+    )
+    rerank_gap_abs: float = field(
+        default_factory=lambda: float(os.getenv("RERANK_GAP_ABS", "0.5"))
+    )
+
     embedding_search_limit: int = field(
         default_factory=lambda: int(os.getenv("EMBEDDING_SEARCH_LIMIT", "5"))
     )

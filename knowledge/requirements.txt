@@ -7,3 +7,4 @@ openai-agents
 pymilvus
 grandalf
 mineru[all]
+FlagEmbedding
