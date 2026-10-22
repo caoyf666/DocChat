@@ -7,6 +7,7 @@ from knowledge.processor.query_processor.state import QueryGraphState
 from knowledge.prompts.query_prompt import ANSWER_PROMPT
 from knowledge.utils.client.ai_clients import AIClients
 from knowledge.utils.mongo_history_util import save_chat_message
+from knowledge.utils.sse_util import SSEEvent, push_sse_event
 from knowledge.utils.task_util import set_task_result
 
 
@@ -17,15 +18,23 @@ class AnswerOutPutNode(BaseNode):
 
     def process(self, state: QueryGraphState) -> QueryGraphState:
         task_id = state.get("task_id", "")
+        is_stream = state.get("is_stream", False)
 
         if state.get("answer"):
             self._push_exist_answer(task_id, state)
+            is_streamed = False
         else:
             prompt = self._build_prompt(state)
             state["prompt"] = prompt
             self._generate_answer(prompt, task_id, state)
+            is_streamed = is_stream
 
         self.save_history(state)
+        if is_stream:
+            if is_streamed:
+                push_sse_event(task_id=task_id, event=SSEEvent.FINAL, data={})
+            else:
+                push_sse_event(task_id=task_id, event=SSEEvent.FINAL, data={"answer": state.get("answer", "")})
         return state
 
     def _push_exist_answer(self, task_id: str, state: QueryGraphState):
@@ -101,7 +110,10 @@ class AnswerOutPutNode(BaseNode):
             set_task_result(task_id=task_id, key="answer", value=state["answer"])
             return
 
-        state["answer"] = self._invoke_llm(prompt, llm_client)
+        if state.get("is_stream"):
+            state["answer"] = self._stream_llm(task_id, prompt, llm_client)
+        else:
+            state["answer"] = self._invoke_llm(prompt, llm_client)
         set_task_result(task_id=task_id, key="answer", value=state["answer"])
 
     def _invoke_llm(self, prompt: str, llm_client: ChatOpenAI) -> str:
@@ -114,6 +126,24 @@ class AnswerOutPutNode(BaseNode):
         except Exception as e:
             self.logger.error(f"LLM answer generation failed: {e}")
             return "LLM暂无法回答"
+
+    def _stream_llm(self, task_id: str, prompt: str, llm_client: ChatOpenAI) -> str:
+        accumulated_delta = ""
+        try:
+            for chunk in llm_client.stream(prompt):
+                delta_text = getattr(chunk, "content", "") or ""
+                if delta_text:
+                    push_sse_event(
+                        task_id=task_id,
+                        event=SSEEvent.DELTA,
+                        data={"delta": delta_text},
+                    )
+                    accumulated_delta += delta_text
+        except Exception as e:
+            self.logger.error(f"LLM stream generation failed: {e}")
+            return "LLM暂无法回答"
+
+        return accumulated_delta
 
     def save_history(self, state: QueryGraphState):
         session_id = state.get("session_id")
